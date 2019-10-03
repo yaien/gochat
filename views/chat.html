@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Chat</title>
+  </head>
+  <body>
+    <ul id="messages"></ul>
+    <form id="form">
+      <input id="textarea" required></input>
+      <input type="submit" value="Send" />
+    </form>
+    <script>
+      let socket = new WebSocket("ws://localhost:4000/room");
+      let messages = document.getElementById("messages");
+      let form = document.getElementById("form");
+      let textarea = document.getElementById("textarea");
+
+      form.addEventListener("submit", e => {
+        e.preventDefault();
+        console.log(textarea);
+        socket.send(textarea.value);
+        textarea.value = "";
+      });
+
+      socket.addEventListener("message", e => {
+        console.log(e);
+        let li = document.createElement("li");
+        li.innerText = e.data
+        messages.append(li);
+      });
+
+      socket.addEventListener("close", e => {
+        alert("Connection has been close");
+      });
+    </script>
+  </body>
+</html>
