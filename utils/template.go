@@ -1,4 +1,4 @@
-package main
+package utils
 
 import (
 	"html/template"
@@ -21,6 +21,6 @@ func (t *TemplateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	t.html.Execute(w, nil)
 }
 
-func render(view string) *TemplateHandler {
+func Render(view string) *TemplateHandler {
 	return &TemplateHandler{filename: view}
 }

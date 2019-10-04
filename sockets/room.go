@@ -1,10 +1,11 @@
-package main
+package sockets
 
 import (
 	"log"
 	"net/http"
 
 	"github.com/gorilla/websocket"
+	"github.com/yaien/gochat/trace"
 )
 
 type Room struct {
@@ -12,19 +13,24 @@ type Room struct {
 	join    chan *Client
 	leave   chan *Client
 	clients map[*Client]bool
+	tracer  trace.Tracer
 }
 
-func (r *Room) run() {
+func (r *Room) Run() {
 	for {
 		select {
 		case client := <-r.join:
 			r.clients[client] = true
+			r.tracer.Trace("new client joined")
 		case client := <-r.leave:
 			delete(r.clients, client)
 			close(client.send)
+			r.tracer.Trace("client left")
 		case msg := <-r.forward:
+			r.tracer.Trace("Message received: ", string(msg))
 			for client := range r.clients {
 				client.send <- msg
+				r.tracer.Trace(" -- sent to client")
 			}
 		}
 	}
@@ -55,11 +61,12 @@ func (r *Room) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	client.read()
 }
 
-func NewRoom() *Room {
+func NewRoom(tracer trace.Tracer) *Room {
 	return &Room{
 		forward: make(chan []byte),
 		join:    make(chan *Client),
 		leave:   make(chan *Client),
 		clients: make(map[*Client]bool),
+		tracer:  tracer,
 	}
 }
