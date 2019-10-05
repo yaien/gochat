@@ -5,13 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <title>Chat</title>
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+      integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
+      crossorigin="anonymous"
+    />
   </head>
   <body>
-    <ul id="messages"></ul>
-    <form id="form">
-      <input id="textarea" required></input>
-      <input type="submit" value="Send" />
-    </form>
+    <div class="container mt-5">
+      <div class="card card-body">
+        <ul id="messages"></ul>
+        <form id="form">
+          <div class="input-group">
+            <input id="textarea" class="form-control" required />
+            <div class="input-group-append">
+              <input class="btn btn-primary" type="submit" value="Send" />
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
     <script>
       let socket = new WebSocket("ws://localhost:4000/room");
       let messages = document.getElementById("messages");
@@ -26,9 +40,8 @@
       });
 
       socket.addEventListener("message", e => {
-        console.log(e);
         let li = document.createElement("li");
-        li.innerText = e.data
+        li.innerText = "{{.User.Name}} Says: " + e.data;
         messages.append(li);
       });
 
