@@ -30,7 +30,7 @@ func main() {
 	router.Handle("/login", utils.Render("login.html", nil))
 	router.HandleFunc("/auth/{provider}/login", auth.Login)
 	router.HandleFunc("/auth/{provider}/callback", auth.Callback)
-	router.Handle("/room", room)
+	router.Handle("/room", auth.Auth(room))
 	go room.Run()
 	if err := http.ListenAndServe(":4000", router); err != nil {
 		log.Fatal("Listen and Serve: ", err)

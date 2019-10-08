@@ -2,12 +2,14 @@ package sockets
 
 import (
 	"github.com/gorilla/websocket"
+	"github.com/yaien/gochat/auth"
 )
 
 type Client struct {
 	send   chan []byte
 	socket *websocket.Conn
 	room   *Room
+	user   *auth.User
 }
 
 func (c *Client) read() {
@@ -17,7 +19,10 @@ func (c *Client) read() {
 		if err != nil {
 			return
 		}
-		c.room.forward <- msg
+		c.room.forward <- &InputMessage{
+			Message: msg,
+			User:    c.user,
+		}
 	}
 }
 

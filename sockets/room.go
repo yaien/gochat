@@ -1,15 +1,18 @@
 package sockets
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/yaien/gochat/auth"
 	"github.com/yaien/gochat/trace"
 )
 
 type Room struct {
-	forward chan []byte
+	forward chan *InputMessage
 	join    chan *Client
 	leave   chan *Client
 	clients map[*Client]bool
@@ -26,10 +29,17 @@ func (r *Room) Run() {
 			delete(r.clients, client)
 			close(client.send)
 			r.tracer.Trace("client left")
-		case msg := <-r.forward:
-			r.tracer.Trace("Message received: ", string(msg))
+		case received := <-r.forward:
+			r.tracer.Trace("Message received: ", string(received.Message))
+			message := &OutputMessage{
+				Name:      received.User.Name,
+				AvatarURL: received.User.AvatarURL,
+				Text:      string(received.Message),
+				Timestamp: time.Now().Format(time.UnixDate),
+			}
+			payload, _ := json.Marshal(message)
 			for client := range r.clients {
-				client.send <- msg
+				client.send <- payload
 				r.tracer.Trace(" -- sent to client")
 			}
 		}
@@ -47,10 +57,12 @@ func (r *Room) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		log.Fatal("ServeHTTP:", err)
 		return
 	}
+	user := req.Context().Value("user").(*auth.User)
 	client := &Client{
 		socket: socket,
 		send:   make(chan []byte, 256),
 		room:   r,
+		user:   user,
 	}
 	r.join <- client
 
@@ -63,7 +75,7 @@ func (r *Room) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 func NewRoom(tracer trace.Tracer) *Room {
 	return &Room{
-		forward: make(chan []byte),
+		forward: make(chan *InputMessage),
 		join:    make(chan *Client),
 		leave:   make(chan *Client),
 		clients: make(map[*Client]bool),

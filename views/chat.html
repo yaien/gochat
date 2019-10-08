@@ -15,7 +15,7 @@
   <body>
     <div class="container mt-5">
       <div class="card card-body">
-        <ul id="messages"></ul>
+        <div id="messages"></div>
         <form id="form">
           <div class="input-group">
             <input id="textarea" class="form-control" required />
@@ -26,27 +26,53 @@
         </form>
       </div>
     </div>
+    <script
+      src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+      integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+      integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+      integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+      crossorigin="anonymous"
+    ></script>
     <script>
-      let socket = new WebSocket("ws://localhost:4000/room");
-      let messages = document.getElementById("messages");
-      let form = document.getElementById("form");
-      let textarea = document.getElementById("textarea");
+      $(() => {
+        let socket = new WebSocket("ws://localhost:4000/room");
+        let messages = $("#messages");
+        let form = $("#form");
+        let textarea = $("#textarea");
 
-      form.addEventListener("submit", e => {
-        e.preventDefault();
-        console.log(textarea);
-        socket.send(textarea.value);
-        textarea.value = "";
-      });
+        form.on("submit", e => {
+          e.preventDefault();
+          socket.send(textarea.val());
+          textarea.val("");
+        });
 
-      socket.addEventListener("message", e => {
-        let li = document.createElement("li");
-        li.innerText = "{{.User.Name}} Says: " + e.data;
-        messages.append(li);
-      });
+        socket.addEventListener("message", e => {
+          let message = JSON.parse(e.data);
+          let timestamp = new Date(message.timestamp).toLocaleString();
+          messages.append(`
+              <div class="media my-2">
+                <img class="mr-3 rounded" style="width:50px; height:50px;" src="${message.avatarURL}" alt=""/>
+                <div class="media-body">
+                  <div>
+                    <b>${message.name}</b> <span class="text-muted">${timestamp}</span>
+                  <div>
+                  ${message.text}
+                </div>
+              </div>
+          `);
+        });
 
-      socket.addEventListener("close", e => {
-        alert("Connection has been close");
+        socket.addEventListener("close", e => {
+          alert("Connection has been close");
+        });
       });
     </script>
   </body>

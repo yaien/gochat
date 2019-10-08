@@ -33,10 +33,10 @@ func Callback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	payload := map[string]interface{}{
-		"name":     user.Name(),
-		"username": user.Email(),
-		"email":    user.Email(),
-		"data":     user.Data(),
+		"name":      user.Name(),
+		"username":  user.Email(),
+		"email":     user.Email(),
+		"avatarURL": user.AvatarURL(),
 	}
 	fmt.Println(payload)
 	http.SetCookie(w, &http.Cookie{

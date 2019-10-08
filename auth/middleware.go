@@ -18,9 +18,10 @@ func Auth(next http.Handler) http.Handler {
 		}
 		data := objx.MustFromBase64(cookie.Value)
 		user := &User{
-			Name:     data.Get("name").Str(""),
-			Email:    data.Get("email").Str(""),
-			Username: data.Get("username").Str(""),
+			Name:      data.Get("name").Str(""),
+			Email:     data.Get("email").Str(""),
+			Username:  data.Get("username").Str(""),
+			AvatarURL: data.Get("avatarURL").Str(""),
 		}
 		fmt.Println(user)
 		ctx := context.WithValue(r.Context(), "user", user)
